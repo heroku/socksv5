@@ -1,3 +1,4 @@
+'use strict';
 var auth = require('../index').auth,
     createServer = require('../index').createServer,
     connect = require('../index').connect;

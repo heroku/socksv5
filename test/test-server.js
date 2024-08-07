@@ -1,7 +1,10 @@
+'use strict';
 var auth = require('../index').auth,
     createServer = require('../index').createServer;
+const net = require('net');
 
 var Socket = require('net').Socket,
+    isIPv6 = require('net').isIPv6,
     cpexec = require('child_process').execFile,
     http = require('http'),
     path = require('path'),
@@ -14,6 +17,10 @@ var t = -1,
     httpPort;
 
 var HTTP_RESPONSE = 'hello from the node.js http server!';
+
+function wrapIfIPv6(addr) {
+  return isIPv6(addr) ? `[${addr}]` : addr;
+}
 
 var tests = [
   { run: function() {
@@ -39,8 +46,8 @@ var tests = [
 
       server.listen(0, 'localhost', function() {
         var args = ['--socks5',
-                    this.address().address + ':' + this.address().port,
-                    'http://' + httpAddr + ':' + httpPort];
+                    wrapIfIPv6(this.address().address) + ':' + this.address().port,
+                    'http://' + wrapIfIPv6(httpAddr) + ':' + httpPort];
         cpexec('curl', args, function(err, stdout, stderr) {
           server.close();
           assert(!err, makeMsg(what, 'Unexpected client error: '
@@ -80,10 +87,10 @@ var tests = [
 
       server.listen(0, 'localhost', function() {
         var args = ['--socks5',
-                    this.address().address + ':' + this.address().port,
+                    wrapIfIPv6(this.address().address) + ':' + this.address().port,
                     '-U',
                     'nodejs:rules',
-                    'http://' + httpAddr + ':' + httpPort];
+                    'http://' + wrapIfIPv6(httpAddr) + ':' + httpPort];
         cpexec('curl', args, function(err, stdout, stderr) {
           server.close();
           assert(!err, makeMsg(what, 'Unexpected client error: '
@@ -112,10 +119,10 @@ var tests = [
 
       server.listen(0, 'localhost', function() {
         var args = ['--socks5',
-                    this.address().address + ':' + this.address().port,
+                    wrapIfIPv6(this.address().address) + ':' + this.address().port,
                     '-U',
                     'php:rules',
-                    'http://' + httpAddr + ':' + httpPort];
+                    'http://' + wrapIfIPv6(httpAddr) + ':' + httpPort];
         cpexec('curl', args, function(err) {
           server.close();
           assert(err, makeMsg(what, 'Expected client error'));
@@ -141,8 +148,8 @@ var tests = [
 
       server.listen(0, 'localhost', function() {
         var args = ['--socks5',
-                    this.address().address + ':' + this.address().port,
-                    'http://' + httpAddr + ':' + httpPort];
+                    wrapIfIPv6(this.address().address) + ':' + this.address().port,
+                    'http://' + wrapIfIPv6(httpAddr) + ':' + httpPort];
         cpexec('curl', args, function(err) {
           server.close();
           assert(err, makeMsg(what, 'Expected client error'));
@@ -167,8 +174,8 @@ var tests = [
 
       server.listen(0, 'localhost', function() {
         var args = ['--socks5',
-                    this.address().address + ':' + this.address().port,
-                    'http://' + httpAddr + ':' + httpPort];
+                    wrapIfIPv6(this.address().address) + ':' + this.address().port,
+                    'http://' + wrapIfIPv6(httpAddr) + ':' + httpPort];
         cpexec('curl', args, function(err) {
           server.close();
           assert(err, makeMsg(what, 'Expected client error'));
@@ -204,8 +211,8 @@ var tests = [
 
       server.listen(0, 'localhost', function() {
         var args = ['--socks5',
-                    this.address().address + ':' + this.address().port,
-                    'http://' + httpAddr + ':' + httpPort];
+                    wrapIfIPv6(this.address().address) + ':' + this.address().port,
+                    'http://' + wrapIfIPv6(httpAddr) + ':' + httpPort];
         cpexec('curl', args, function(err, stdout, stderr) {
           server.close();
           assert(!err, makeMsg(what, 'Unexpected client error: '
@@ -244,8 +251,8 @@ var tests = [
 
       server.listen(0, 'localhost', function() {
         var args = ['--socks5',
-                    this.address().address + ':' + this.address().port,
-                    'http://' + httpAddr + ':' + httpPort];
+                    wrapIfIPv6(this.address().address) + ':' + this.address().port,
+                    'http://' + wrapIfIPv6(httpAddr) + ':' + httpPort];
         cpexec('curl', args, function(err, stdout, stderr) {
           server.close();
           assert(err, makeMsg(what, 'Expected client error'));
@@ -286,7 +293,7 @@ var tests = [
                    makeMsg(what,
                            'Timeout while waiting for bad client socket end'));
           }, 100);
-          clientSock.write(new Buffer([0x04, 0x01, 0x00]));
+          clientSock.write(Buffer.from([0x04, 0x01, 0x00]));
         }).connect(this.address().port, 'localhost');
       });
     },
